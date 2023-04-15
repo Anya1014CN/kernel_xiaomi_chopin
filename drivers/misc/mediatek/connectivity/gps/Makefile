@@ -11,7 +11,7 @@ MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 # published by the Free Software Foundation.
 
 ###############################################################################
-# Necessary Check
+# Necessary obj-y
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ifeq ($(CONFIG_MTK_GPS_SUPPORT), y)
 
