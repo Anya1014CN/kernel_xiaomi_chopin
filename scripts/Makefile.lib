@@ -178,6 +178,10 @@ DTC_INCLUDE    := $(srctree)/scripts/dtc/include-prefixes
 
 dtc_cpp_flags  = -Wp,-MD,$(depfile).pre.tmp -nostdinc                    \
 		 $(addprefix -I,$(DTC_INCLUDE))                          \
+		 -I$(srctree)/arch/$(SRCARCH)/boot/dts                   \
+		 -I$(srctree)/arch/$(SRCARCH)/boot/dts/include           \
+		 -I$(objtree)/include/                                   \
+		 -Iarch/$(SRCARCH)/boot/dts                              \
 		 -undef -D__DTS__
 
 # Finds the multi-part object the current object will be linked into
@@ -235,6 +239,12 @@ cmd_shipped = cat $< > $@
 $(obj)/%: $(src)/%_shipped
 	$(call cmd,shipped)
 
+# cat
+# ---------------------------------------------------------------------------
+# Concatentate multiple files together
+quiet_cmd_cat = CAT     $@
+cmd_cat = (cat $(filter-out FORCE,$^) > $@) || (rm -f $@; false)
+
 # Commands useful for building a boot image
 # ===========================================================================
 #
@@ -269,6 +279,9 @@ cmd_gzip = (cat $(filter-out FORCE,$^) | gzip -n -f -9 > $@) || \
 # DTC
 # ---------------------------------------------------------------------------
 DTC ?= $(objtree)/scripts/dtc/dtc
+
+# Silence warnings
+DTC_FLAGS += -q
 
 # Disable noisy checks by default
 ifeq ($(KBUILD_ENABLE_EXTRA_GCC_CHECKS),)
@@ -308,7 +321,7 @@ $(obj)/%.dtb.S: $(obj)/%.dtb
 quiet_cmd_dtc = DTC     $@
 cmd_dtc = mkdir -p $(dir ${dtc-tmp}) ; \
 	$(CPP) $(dtc_cpp_flags) -x assembler-with-cpp -o $(dtc-tmp) $< ; \
-	$(DTC) -O dtb -o $@ -b 0 \
+	$(srctree)/scripts/dtc/dtc_overlay -@ -O dtb -o $@ -b 0 \
 		$(addprefix -i,$(dir $<) $(DTC_INCLUDE)) $(DTC_FLAGS) \
 		-d $(depfile).dtc.tmp $(dtc-tmp) ; \
 	cat $(depfile).pre.tmp $(depfile).dtc.tmp > $(depfile)
